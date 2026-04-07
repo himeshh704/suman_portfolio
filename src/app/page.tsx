@@ -1,11 +1,45 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { motion, Variants, AnimatePresence, useScroll, useSpring } from "framer-motion";
+import { 
+  motion, Variants, AnimatePresence, useScroll, useSpring, 
+  useMotionValue, useTransform, useElementScroll 
+} from "framer-motion";
 import { 
   Mail, Phone, MapPin, Code, Video, Layout, 
   Palette, Users, Target, Clock, ArrowRight,
-  Monitor, Camera, Terminal, Shield, Zap
+  Monitor, Camera, Terminal, Shield, Zap, ExternalLink
 } from "lucide-react";
+
+function Magnetic({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouse = (e: React.MouseEvent) => {
+    const { clientX, clientY } = e;
+    const { height, width, left, top } = ref.current!.getBoundingClientRect();
+    const middleX = clientX - (left + width / 2);
+    const middleY = clientY - (top + height / 2);
+    setPosition({ x: middleX * 0.35, y: middleY * 0.35 });
+  };
+
+  const reset = () => {
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const { x, y } = position;
+  return (
+    <motion.div
+      style={{ position: "relative" }}
+      ref={ref}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      animate={{ x, y }}
+      transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
@@ -20,10 +54,21 @@ export default function Home() {
     restDelta: 0.001
   });
 
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const titleX = useSpring(useTransform(mouseX, [0, 2000], [-30, 30]), { stiffness: 100, damping: 30 });
+  const titleY = useSpring(useTransform(mouseY, [0, 1000], [-30, 30]), { stiffness: 100, damping: 30 });
+
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+
     const handleMouseMove = (e: MouseEvent) => {
       setCursorPos({ x: e.clientX, y: e.clientY });
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
       
       const target = e.target as HTMLElement;
       const card = target.closest('.card') as HTMLElement;
@@ -116,22 +161,26 @@ export default function Home() {
       />
 
       {/* Header */}
-      <header className={`fixed w-full top-0 z-50 transition-all duration-700 ${scrolled ? 'glass py-4' : 'py-10'}`}>
+      <header className={`fixed w-full top-0 z-100 transition-all duration-700 ${scrolled ? 'glass py-4' : 'py-10'}`}>
         <nav className="container flex justify-between items-center">
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}
-            className="font-bold text-[0.8rem] tracking-[0.4em] text-primary uppercase"
-          >
-            Suman Santra
-          </motion.div>
+          <Magnetic>
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}
+              className="font-bold text-primary uppercase"
+              style={{ fontSize: '0.8rem', letterSpacing: '0.4em', cursor: 'none' }}
+            >
+              Suman Santra
+            </motion.div>
+          </Magnetic>
           <ul className="flex gap-12 list-none m-0 p-0">
             {['Vision', 'Craft', 'Lab', 'Contact'].map((item) => (
               <li key={item}>
                 <a 
                   href={`#${item.toLowerCase()}`} 
                   onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}
-                  className="text-[0.65rem] tracking-[0.3em] uppercase text-text-muted hover:text-text-main transition-all duration-400 no-underline"
+                  className="uppercase text-text-muted hover-text-main transition-all no-underline"
+                  style={{ fontSize: '0.65rem', letterSpacing: '0.3em' }}
                 >
                   {item}
                 </a>
@@ -143,26 +192,43 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="h-screen flex items-center justify-center text-center p-0 relative overflow-hidden">
-        <div 
-          className="absolute inset-0 z-0 opacity-40 bg-cover bg-center"
+        <div className="absolute inset-0 z-0 opacity-40 bg-cover bg-center"
           style={{ backgroundImage: 'url("/hero.png")', filter: 'grayscale(100%) contrast(1.2)' }}
         />
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background via-background/80 to-background" />
+        <div className="absolute inset-0 z-0 bg-hero-gradient" />
         
         <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="container relative z-10">
           <motion.div variants={cinematicFade}>
-            <p className="text-text-muted tracking-[0.6em] uppercase text-[0.6rem] mb-10">
+            <p className="text-text-muted uppercase mb-10" style={{ letterSpacing: '0.6em', fontSize: '0.6rem' }}>
               Est. 2023 // B.Tech (Cybersecurity)
             </p>
           </motion.div>
           <motion.h1 
             variants={cinematicFade}
-            className="glow-text text-[clamp(4rem,14vw,12rem)] leading-[0.85] mb-12 tracking-[-0.03em] font-extrabold uppercase"
+            className="glow-text mb-12 uppercase"
+            style={{ 
+              fontSize: 'clamp(4rem, 14vw, 12rem)', 
+              lineHeight: 0.85, 
+              letterSpacing: '-0.03em', 
+              fontWeight: 800,
+              x: titleX,
+              y: titleY
+            }}
           >
-            Suman<br/><span className="opacity-20 italic font-light">Santra</span>
+            Suman<br/>
+            <span 
+              className="italic font-light" 
+              style={{ 
+                opacity: 1, 
+                color: 'rgba(255,255,255,0.7)', 
+                textShadow: '0 0 40px var(--primary-glow)' 
+              }}
+            >
+              Santra
+            </span>
           </motion.h1>
           <motion.div variants={cinematicFade} className="max-w-xl mx-auto">
-            <p className="text-[1.2rem] text-text-muted leading-relaxed font-light tracking-wide">
+            <p className="text-text-muted leading-relaxed font-light tracking-wide" style={{ fontSize: '1.2rem' }}>
               Director of digital experiences at the intersection of <br/>
               <span className="text-text-main font-normal">Full-Stack Development</span> and <span className="text-text-main font-normal">Cinematic Storytelling</span>.
             </p>
@@ -171,7 +237,9 @@ export default function Home() {
             variants={cinematicFade} className="mt-20"
             onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}
           >
-            <a href="#lab" className="premium-btn">Explore The Lab</a>
+            <Magnetic>
+              <a href="#lab" className="premium-btn">Explore The Lab</a>
+            </Magnetic>
           </motion.div>
         </motion.div>
       </section>
@@ -181,14 +249,14 @@ export default function Home() {
         <div className="container">
           <motion.div 
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-32 items-start"
+            className="grid grid-cols-1 lg-grid-cols-2 gap-32 items-start"
           >
             <motion.div variants={cinematicFade}>
-              <h3 className="text-[0.7rem] tracking-[0.5em] uppercase text-text-muted mb-16">// The Vision</h3>
-              <p className="text-[2.2rem] leading-tight text-text-main mb-10 font-serif italic tracking-tight">
+              <h3 className="uppercase text-text-muted mb-16" style={{ fontSize: '0.7rem', letterSpacing: '0.5em' }}>// The Vision</h3>
+              <p className="leading-tight text-text-main mb-10 font-serif italic tracking-tight" style={{ fontSize: '2.2rem' }}>
                 A motivated developer with a passion for creative digital work, skilled in videography and aesthetic storytelling.
               </p>
-              <p className="text-text-muted text-[1.1rem] leading-[2] font-light">
+              <p className="text-text-muted leading-relaxed font-light" style={{ fontSize: '1.1rem' }}>
                 I possess a creative mindset and a deep understanding of UI/UX design principles. Eager to apply technical and creative skills to real-world projects and continuously learn. Featured in Digital leadership roles, I bridge the gap between code and visual impact.
               </p>
             </motion.div>
@@ -198,15 +266,15 @@ export default function Home() {
               <div className="flex flex-col gap-10">
                 <div className="flex items-center gap-6">
                   <Mail className="text-primary" size={18} />
-                  <span className="text-[0.9rem] text-text-muted italic">sumansantra1118@gmail.com</span>
+                  <span className="text-text-muted italic" style={{ fontSize: '0.9rem' }}>sumansantra1118@gmail.com</span>
                 </div>
                 <div className="flex items-center gap-6">
                   <Phone className="text-primary" size={18} />
-                  <span className="text-[0.9rem] text-text-muted tracking-widest">+91 8209389646</span>
+                  <span className="text-text-muted tracking-widest" style={{ fontSize: '0.9rem' }}>+91 8209389646</span>
                 </div>
                 <div className="flex items-center gap-6">
                   <MapPin className="text-primary" size={18} />
-                  <span className="text-[0.9rem] text-text-muted">Jodhpur, Rajasthan</span>
+                  <span className="text-text-muted" style={{ fontSize: '0.9rem' }}>Jodhpur, Rajasthan</span>
                 </div>
               </div>
             </motion.div>
@@ -221,25 +289,30 @@ export default function Home() {
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={cinematicFade}
             className="mb-32 text-center"
           >
-            <h3 className="text-[0.7rem] tracking-[0.5em] uppercase text-text-muted mb-6">// The Craft</h3>
-            <h2 className="text-[4rem] text-text-main font-serif italic">Artillery & Tools.</h2>
+            <h3 className="uppercase text-text-muted mb-6" style={{ fontSize: '0.7rem', letterSpacing: '0.5em' }}>// The Craft</h3>
+            <h2 className="text-text-main font-serif italic" style={{ fontSize: '4rem' }}>Artillery & Tools.</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md-grid-cols-2 lg-grid-cols-3 gap-10">
             {skills.map((skill, i) => (
               <motion.div 
                 key={skill.name}
-                initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1, duration: 0.8 }}
-                viewport={{ once: true }}
-                className="card group hover:border-primary"
+                initial={{ opacity: 0, y: 50, rotateX: 15, scale: 0.9 }} 
+                whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+                transition={{ 
+                  delay: i * 0.1, 
+                  duration: 1.2, 
+                  ease: [0.16, 1, 0.3, 1] 
+                }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="card group hover-border-primary"
                 onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}
               >
                 <div className="card-spotlight" />
                 <div className="relative z-10">
-                  <div className="text-primary mb-8 group-hover:scale-110 transition-transform duration-500">{skill.icon}</div>
-                  <h4 className="text-[1.5rem] mb-4 text-text-main tracking-tight">{skill.name}</h4>
-                  <p className="text-[0.8rem] text-text-muted mb-10 font-light">{skill.details}</p>
+                  <div className="text-primary mb-8 transition-transform duration-500 hover-scale-110">{skill.icon}</div>
+                  <h4 className="mb-4 text-text-main tracking-tight" style={{ fontSize: '1.5rem' }}>{skill.name}</h4>
+                  <p className="text-text-muted mb-10 font-light" style={{ fontSize: '0.8rem' }}>{skill.details}</p>
                   <div className="progress-track mt-6">
                     <motion.div 
                       className="progress-fill" initial={{ width: 0 }} 
@@ -260,7 +333,8 @@ export default function Home() {
             <div>
               <motion.h3 
                 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
-                className="text-[0.7rem] tracking-[0.5em] uppercase text-text-muted mb-20"
+                className="uppercase text-text-muted mb-20"
+                style={{ fontSize: '0.7rem', letterSpacing: '0.5em' }}
               >
                 // Case Studies & Experience
               </motion.h3>
@@ -269,12 +343,12 @@ export default function Home() {
                   <motion.div 
                     key={i} initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.2 }} viewport={{ once: true }}
-                    className="border-l-2 border-border-ghost pl-12 hover:border-primary transition-colors"
+                    className="border-l-2 border-border-ghost pl-12 hover-border-primary transition-colors"
                   >
-                    <div className="text-[0.6rem] text-primary tracking-widest uppercase mb-4">{exp.period}</div>
-                    <h4 className="text-[1.8rem] text-text-main mb-2 tracking-tight">{exp.role}</h4>
-                    <p className="text-text-muted text-[0.85rem] mb-6 tracking-wide font-light">{exp.company}</p>
-                    <p className="text-text-muted text-[1rem] leading-relaxed font-light">{exp.description}</p>
+                    <div className="text-primary tracking-widest uppercase mb-4" style={{ fontSize: '0.6rem' }}>{exp.period}</div>
+                    <h4 className="text-text-main mb-2 tracking-tight" style={{ fontSize: '1.8rem' }}>{exp.role}</h4>
+                    <p className="text-text-muted mb-6 tracking-wide font-light" style={{ fontSize: '0.85rem' }}>{exp.company}</p>
+                    <p className="text-text-muted leading-relaxed font-light" style={{ fontSize: '1rem' }}>{exp.description}</p>
                   </motion.div>
                 ))}
               </div>
@@ -283,7 +357,8 @@ export default function Home() {
             <div>
               <motion.h3 
                 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
-                className="text-[0.7rem] tracking-[0.5em] uppercase text-text-muted mb-20"
+                className="uppercase text-text-muted mb-20"
+                style={{ fontSize: '0.7rem', letterSpacing: '0.5em' }}
               >
                 // Educational Ledger
               </motion.h3>
@@ -292,14 +367,14 @@ export default function Home() {
                   <motion.div 
                     key={i} initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.2 }} viewport={{ once: true }}
-                    className="bg-surface/50 p-10 border border-border-ghost hover:bg-surface transition-all"
+                    className="bg-surface-50 p-10 border border-border-ghost hover-bg-surface transition-all"
                   >
                     <div className="flex justify-between items-start mb-6">
-                      <span className="text-[0.6rem] text-text-muted tracking-widest uppercase">{edu.period}</span>
-                      {edu.result && <span className="text-primary text-[0.7rem] font-bold">{edu.result}</span>}
+                      <span className="text-text-muted tracking-widest uppercase" style={{ fontSize: '0.6rem' }}>{edu.period}</span>
+                      {edu.result && <span className="text-primary font-bold" style={{ fontSize: '0.7rem' }}>{edu.result}</span>}
                     </div>
-                    <h4 className="text-[1.2rem] text-text-main mb-2">{edu.degree}</h4>
-                    <p className="text-[0.8rem] text-text-muted font-light">{edu.institution}</p>
+                    <h4 className="text-text-main mb-2" style={{ fontSize: '1.2rem' }}>{edu.degree}</h4>
+                    <p className="text-text-muted font-light" style={{ fontSize: '0.8rem' }}>{edu.institution}</p>
                   </motion.div>
                 ))}
               </div>
@@ -314,9 +389,9 @@ export default function Home() {
           <motion.div 
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={cinematicFade}
           >
-            <h3 className="text-[0.7rem] tracking-[0.5em] uppercase text-text-muted mb-16">// Establish Connection</h3>
-            <h2 className="text-[4.5rem] mb-10 leading-none font-serif">Open for Collaboration.</h2>
-            <p className="text-text-muted text-[1.2rem] mb-20 font-light leading-relaxed">
+            <h3 className="uppercase text-text-muted mb-16" style={{ fontSize: '0.7rem', letterSpacing: '0.5em' }}>// Establish Connection</h3>
+            <h2 className="mb-10 leading-none font-serif" style={{ fontSize: '4.5rem' }}>Open for Collaboration.</h2>
+            <p className="text-text-muted mb-20 font-light leading-relaxed" style={{ fontSize: '1.2rem' }}>
               Based in Jodhpur, Rajasthan. Exploring new boundaries in frontend engineering and cinematic digital production.
             </p>
             
@@ -325,25 +400,30 @@ export default function Home() {
                 <input 
                   type="text" placeholder="IDENTITY / NAME" required 
                   onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}
-                  className="w-full p-8 bg-transparent border border-border-ghost text-white focus:border-primary outline-none text-[0.8rem] tracking-wider"
+                  className="w-full p-8 bg-transparent border border-border-ghost text-white focus-border-primary outline-none tracking-wider"
+                  style={{ fontSize: '0.8rem' }}
                 />
                 <input 
                   type="email" placeholder="SECURE_CHANNEL / EMAIL" required 
                   onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}
-                  className="w-full p-8 bg-transparent border border-border-ghost text-white focus:border-primary outline-none text-[0.8rem] tracking-wider"
+                  className="w-full p-8 bg-transparent border border-border-ghost text-white focus-border-primary outline-none tracking-wider"
+                  style={{ fontSize: '0.8rem' }}
                 />
               </div>
               <textarea 
                 placeholder="PAYLOAD / MESSAGE" rows={6} required 
                 onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}
-                className="w-full p-8 bg-transparent border border-border-ghost text-white focus:border-primary outline-none text-[0.8rem] tracking-wider resize-none"
+                className="w-full p-8 bg-transparent border border-border-ghost text-white focus-border-primary outline-none tracking-wider resize-none"
+                style={{ fontSize: '0.8rem' }}
               ></textarea>
-              <button 
-                type="submit" className="premium-btn w-full mt-4"
-                onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}
-              >
-                Transmit Payload <ArrowRight size={14} className="inline ml-4" />
-              </button>
+              <Magnetic>
+                <button 
+                  type="submit" className="premium-btn w-full mt-4"
+                  onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}
+                >
+                  Transmit Payload <ArrowRight size={14} className="inline ml-4" />
+                </button>
+              </Magnetic>
             </form>
           </motion.div>
         </div>
@@ -352,7 +432,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-24 border-t border-border-ghost bg-black">
         <div className="container text-center">
-          <p className="text-text-muted text-[0.65rem] tracking-[0.3em] uppercase opacity-50">
+          <p className="text-text-muted uppercase opacity-50" style={{ fontSize: '0.65rem', letterSpacing: '0.3em' }}>
             © {new Date().getFullYear()} Suman Santra. Cinematic Web & Digital Storytelling.
           </p>
         </div>
