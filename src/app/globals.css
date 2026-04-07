@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@100;300;400;600;800&display=swap');
+
+:root {
+  --primary: #f59e0b; /* Amber 500 */
+  --primary-glow: rgba(245, 158, 11, 0.3);
+  --background: #020617; /* Slate 950 */
+  --surface: #0f172a; /* Slate 900 */
+  --surface-accent: #1e293b; /* Slate 800 */
+  --text-main: #f8fafc; /* Slate 50 */
+  --text-muted: #94a3b8; /* Slate 400 */
+  --border-ghost: rgba(148, 163, 184, 0.1);
+  --grid-gap: 2.5rem;
+  --noise: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  cursor: none; /* Hide default cursor for custom one */
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-main);
+  font-family: 'Outfit', 'Inter', sans-serif;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: var(--noise);
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 4rem;
+}
+
+section {
+  padding: 10rem 0;
+  position: relative;
+}
+
+.glow-text {
+  background: linear-gradient(to bottom, #fff 30%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 30px var(--primary-glow));
+}
+
+.premium-btn {
+  display: inline-block;
+  padding: 1.2rem 3.5rem;
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-btn:hover {
+  background: var(--primary);
+  color: var(--background);
+  box-shadow: 0 0 50px var(--primary-glow);
+}
+
+.custom-cursor {
+  width: 20px;
+  height: 20px;
+  background: var(--primary);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 10000;
+  mix-blend-mode: difference;
+  transition: width 0.3s, height 0.3s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-cursor.active {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-ghost);
+}
+
+.card {
+  padding: 4rem;
+  background: var(--surface);
+  border: 1px solid var(--border-ghost);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  border-color: var(--primary);
+  transform: translateY(-10px);
+  box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
+}
+
+.card-spotlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    600px circle at var(--mouse-x) var(--mouse-y),
+    rgba(245, 158, 11, 0.05),
+    transparent 40%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.progress-track {
+  width: 100%;
+  height: 1px;
+  background: var(--border-ghost);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  box-shadow: 0 0 20px var(--primary);
+}
+
+@media (max-width: 1024px) {
+  .container { padding: 0 2rem; }
+  section { padding: 6rem 0; }
+}
