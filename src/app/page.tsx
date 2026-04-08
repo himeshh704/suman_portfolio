@@ -200,7 +200,7 @@ export default function Home() {
         <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="container relative z-10">
           <motion.div variants={cinematicFade}>
             <p className="text-text-muted uppercase mb-10" style={{ letterSpacing: '0.6em', fontSize: '0.6rem' }}>
-              Est. 2023 // B.Tech (Cybersecurity)
+              Est. 2023 // B.Tech (Computer Science Engineering)
             </p>
           </motion.div>
           <motion.h1 
